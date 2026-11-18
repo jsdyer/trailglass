@@ -198,9 +198,21 @@ def main():
     vendor(cache, dist / "vendor")
     output = dist / "data"
     output.mkdir()
+    region_status = {}
     for region, data in zip(SOURCES, regions):
         (output / (region + ".json")).write_text(json.dumps(data, ensure_ascii=False, separators=(",", ":")), encoding="utf-8")
+        region_status[region] = {
+            "retrieved_at": data["source"]["retrieved"],
+            "source_updated": data["source"]["updated"],
+            "segments": len(data["features"]),
+        }
         print(f"{region}: {len(data['features'])} segments")
+    # A fallback can retain a different retrieval date for each region.
+    summary = {
+        "oldest_retrieval": min(entry["retrieved_at"] for entry in region_status.values()),
+        "regions": region_status,
+    }
+    (output / "status.json").write_text(json.dumps(summary) + "\n", encoding="utf-8")
 
 
 if __name__ == "__main__":
