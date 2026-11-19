@@ -1,0 +1,46 @@
+{
+  "id": "trailglass",
+  "title": "Trailglass",
+  "description": "Explore municipal trails, download mapped segments as GPX and inspect your own recorded rides.",
+  "category": "places",
+  "tags": [
+    "langley",
+    "halifax",
+    "vancouver",
+    "nova",
+    "scotia",
+    "bike",
+    "cycling",
+    "hikes",
+    "gpx"
+  ],
+  "icon": "bike",
+  "url": "/trailglass/",
+  "source": "https://github.com/jsdyer/trailglass",
+  "hosting": "project",
+  "access": "browser",
+  "data_info": {
+    "mode": "mixed",
+    "detail": "Vancouver, Langley and Halifax publish the mapped segments. Activity times and elevations come from GPX files you open.",
+    "probes": [
+      {
+        "url": "https://coolcode.ca/trailglass/data/status.json",
+        "path": [
+          "oldest_retrieval"
+        ],
+        "label": "Oldest source retrieved",
+        "value": "2026-11-18",
+        "count_at": {
+          "path": [
+            "regions"
+          ],
+          "unit": "mapped trail segments",
+          "measure": "sum",
+          "field": "segments"
+        },
+        "count": 6236
+      }
+    ],
+    "cadence": "Weekly"
+  }
+}

@@ -33,3 +33,23 @@ test('multiline geometry never joins independent parts', () => {
   ] });
   assert.ok(Math.abs(ground - 222390) < 4);
 });
+
+test('municipal GPX preserves separate linework and documents the source without fabricated activity data', async () => {
+  const {mappedTrack, municipalGpx} = await import('../web/track.mjs');
+  const track = mappedTrack({geometry:{type:'MultiLineString',coordinates:[
+    [[-63.6,44.7],[-63.59,44.69]],[[-63.5,44.6],[-63.49,44.6]],
+  ]},properties:{id:'72', name:'Trail & Lake',type:'Trail',suggested:true}}, {
+    publisher:'Municipality',title:'Trails',link:'https://example.org/?a=1&b=2',
+    license:'Open data',license_link:'https://example.org/licence',retrieved:'2026-11-01',
+  });
+  const gpx = municipalGpx(track);
+  assert.equal(track.segments.length, 2);
+  assert.equal(analyze(track.segments).duration, null);
+  assert.equal((gpx.match(/<trkseg>/g)||[]).length,2);
+  assert.match(gpx, /Trail &amp; Lake/);
+  assert.match(gpx, /a=1&amp;b=2/);
+  assert.match(gpx, /record 72/);
+  assert.match(gpx, /Suggested route/);
+  assert.match(gpx, /lat="44.7" lon="-63.6"/);
+  assert.doesNotMatch(gpx, /<(ele|time)>/);
+});

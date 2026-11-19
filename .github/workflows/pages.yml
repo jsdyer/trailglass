@@ -38,6 +38,16 @@ jobs:
           fi
           python3 scripts/build.py
           test -s dist/index.html
+      - name: Check route geometry, municipal downloads and local GPX imports
+        run: |
+          node --test tests/*.test.mjs
+          python3 -m venv "$RUNNER_TEMP/browser-check"
+          . "$RUNNER_TEMP/browser-check/bin/activate"
+          pip install playwright==1.58.0
+          export CHROMIUM_PATH="$(command -v google-chrome)"
+          test -x "$CHROMIUM_PATH"
+          python3 -m http.server 8000 --bind 127.0.0.1 --directory dist &
+          python3 tests/browser_smoke.py http://127.0.0.1:8000/
       - uses: actions/upload-pages-artifact@v4
         with:
           path: dist

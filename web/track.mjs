@@ -114,3 +114,32 @@ export function geometryDistance(geometry) {
     return metres + distance({ lat, lon }, { lat: lastLat, lon: lastLon });
   }, 0), 0);
 }
+
+export function mappedTrack(feature, source) {
+  const {name, id, type, suggested} = feature.properties;
+  const geometry = feature.geometry;
+  const lines = geometry.type === 'LineString' ? [geometry.coordinates] : geometry.coordinates;
+  const segments = lines.map(line => line.map(([lon, lat]) => ({lon, lat, elevation:null, time:null})));
+  return {name, segments, source, recordId:id, facility:type, suggested:!!suggested};
+}
+
+export function municipalGpx(track) {
+  const escape = value => String(value).replace(/[&<>"']/g, character =>
+    ({'&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;', "'":'&apos;'})[character]);
+  const source = track.source;
+  const description = [source.publisher, source.title, 'record ' + track.recordId,
+    track.facility, track.suggested && 'Suggested route', 'Snapshot ' + source.retrieved, source.license].filter(Boolean).join(' · ');
+  const lines = ['<?xml version="1.0" encoding="UTF-8"?>',
+    '<gpx version="1.1" creator="Trailglass" xmlns="http://www.topografix.com/GPX/1/1">',
+    '<metadata><name>' + escape(track.name) + '</name><desc>' + escape(description) + '</desc>',
+    '<link href="' + escape(source.link) + '"><text>' + escape(source.title) + '</text></link>',
+    '<link href="' + escape(source.license_link) + '"><text>' + escape(source.license) + '</text></link></metadata>',
+    '<trk><name>' + escape(track.name) + '</name>'];
+  for (const segment of track.segments) {
+    lines.push('<trkseg>');
+    for (const point of segment) lines.push('<trkpt lat="' + point.lat + '" lon="' + point.lon + '"/>');
+    lines.push('</trkseg>');
+  }
+  lines.push('</trk></gpx>');
+  return lines.join('\n');
+}

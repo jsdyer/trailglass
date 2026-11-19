@@ -33,7 +33,7 @@
 <div class="map-head"><h2 id="map-title">Route map</h2><button class="quiet" id="fit" type="button">Fit results</button></div>
 <div id="map" role="region" aria-label="Interactive municipal trails map"></div>
 <div class="map-controls">
-<div class="legend"><span><i class="route"></i> Published segment</span><span id="suggested-key" hidden><i class="suggested"></i> Suggested route</span><span id="track-key" hidden><i class="gpx"></i> Local GPX</span></div>
+<div class="legend"><span><i class="route"></i> Published segment</span><span id="suggested-key" hidden><i class="suggested"></i> Suggested route</span><span id="track-key" hidden><i class="gpx"></i> <span id="track-legend">Local GPX</span></span></div>
 <label class="tick"><input type="checkbox" id="tiles"> OpenStreetMap street background</label>
 </div>
 <p id="map-hint" class="fine">The optional street background requests tiles from OpenStreetMap. It is disabled when a GPX is open.</p>
@@ -47,17 +47,19 @@
 </section>
 </div>
 <section id="gpx" class="gpx-panel" aria-labelledby="gpx-title">
-<div class="section-head"><div><p class="eyebrow">Files stay on this device</p><h2 id="gpx-title">Inspect a GPX track</h2></div></div>
+<div class="section-head"><div><p class="eyebrow">Files stay on this device</p><h2 id="gpx-title" tabindex="-1">Track inspector</h2></div></div>
 <div class="gpx-actions">
-<label class="file-label" for="gpx-file">Choose GPX file</label><input id="gpx-file" type="file" accept=".gpx,application/gpx+xml,application/xml,text/xml">
-<button type="button" id="sample" class="quiet">Try an example</button>
-<button type="button" id="fit-track" class="quiet" hidden>Fit GPX on map</button>
+<label class="file-label" for="gpx-file">Open your GPX</label><input id="gpx-file" type="file" accept=".gpx,application/gpx+xml,application/xml,text/xml">
+<button type="button" id="inspect-mapped" class="quiet" disabled>Inspect a map segment</button>
+<button type="button" id="fit-track" class="quiet" hidden>Fit track on map</button>
 <button type="button" id="clear" class="quiet" hidden>Clear track</button>
 </div>
 <p id="gpx-status" class="fine" role="status" aria-live="polite">Load a Garmin or other GPX activity to see distance, recorded ascent, elevation and elapsed time.</p>
 <div id="gpx-output" hidden>
 <dl id="gpx-facts" class="gpx-facts"></dl>
 <div id="elevation"></div>
+<p id="track-credit" class="fine" hidden></p>
+<button class="quiet" type="button" id="export-gpx" hidden>Download mapped segment GPX</button>
 <button class="quiet" type="button" id="export-track">Export track GeoJSON</button>
 <p class="fine">The export contains your track coordinates. Share it only with the people you choose.</p>
 </div>

@@ -2,6 +2,14 @@
 
 A static map and private GPX inspector for municipal routes in Vancouver, the Township of Langley and Halifax. Search by route name, street or type. Vancouver adds a filter for reported surfaces. Halifax suggested routes use an orange dashed line and have a toggle. Select a result to fit the map to that segment.
 
+## Inspect and download mapped segments
+
+<!-- coolcode:guide -->
+Select a map segment to download its GPX with the municipality, source record and licence. The inspector also reads local GPX activities with recorded times and elevations.
+<!-- /coolcode:guide -->
+
+For example, search Vancouver for Central Valley and open a segment. Choose **Inspect and export segment** in its map popup to see its mapped length and point count. **Download mapped segment GPX** saves its lines to a GPX 1.1 track. Disconnected parts remain separate. The GPX also records the dataset, municipal record ID, snapshot date, licence and whether Halifax marks a line as suggested. Its coordinates describe one published feature. Time and elevation only appear for imported files that supply those measurements. Downloading the GeoJSON also preserves municipal provenance.
+
 ## Build and test
 
 1. Run `python3 scripts/build.py` to download and validate municipal snapshots, trim their geometry fields and bundle Leaflet locally in `dist/`.

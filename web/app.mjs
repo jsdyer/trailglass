@@ -1,4 +1,4 @@
-import { analyze, geometryDistance, readGpx } from './track.mjs';
+import { analyze, geometryDistance, readGpx, mappedTrack, municipalGpx } from './track.mjs';
 
 const el = id => document.getElementById(id);
 const L = window.L;
@@ -77,11 +77,16 @@ function details(feature) {
   layout.append(node('span', [properties.type, properties.surface, properties.status].filter(Boolean).join(' · ')));
   layout.append(node('span', length(geometryDistance(feature.geometry)) + ' mapped'));
   if (properties.suggested) layout.append(node('span', 'Classified here as a suggested route.', 'suggested-text'));
+  const inspect = node('button', 'Inspect and export segment', 'quiet');
+  inspect.type = 'button';
+  inspect.addEventListener('click', () => inspectMapped(feature));
+  layout.append(inspect);
   return layout;
 }
 
 function selectSegment(layer, fit) {
   picked = layer.feature.properties.id;
+  updateMappedButton(layer.feature);
   routeLayer.eachLayer(item => { item.setStyle(style(item.feature)); });
   layer.bringToFront();
   if (fit) {
@@ -89,6 +94,21 @@ function selectSegment(layer, fit) {
     map.fitBounds(bounds.pad(.15), { maxZoom: 16, padding: [21, 21], animate: false });
   }
   layer.openPopup();
+}
+
+function updateMappedButton(feature) {
+  const button = el('inspect-mapped');
+  button.disabled = !feature;
+  button.textContent = feature ? 'Inspect ' + feature.properties.name : 'Inspect a map segment';
+}
+
+function inspectMapped(feature) {
+  if (!data || !feature) return;
+  fileLoad++;
+  map.closePopup();
+  setTrack(mappedTrack(feature, data.source));
+  el('gpx-title').focus({preventScroll:true});
+  el('gpx').scrollIntoView({block:'nearest'});
 }
 
 function renderMap() {
@@ -151,6 +171,7 @@ function applyFilters(fit = false) {
     (!type || props.type === type) && (!surface || props.surface === surface) &&
     (showSuggested || !props.suggested) &&
     (!query || [props.name, props.street, props.type].filter(Boolean).join(' ').toLocaleLowerCase('en-CA').includes(query)));
+  updateMappedButton(filtered[0]);
   const count = number(filtered.length);
   const suggested = filtered.filter(item => item.properties.suggested).length;
   el('summary').textContent = count + (filtered.length === 1 ? ' mapped segment' : ' mapped segments') +
@@ -171,6 +192,9 @@ async function loadRegion() {
   const region = el('region').value;
   const version = ++regionLoad;
   data = null;
+  filtered = [];
+  picked = null;
+  updateMappedButton(null);
   el('summary').textContent = 'Loading ' + el('region').selectedOptions[0].textContent + ' routes…';
   el('query').value = '';
   el('query').placeholder = regions[region].query;
@@ -275,6 +299,9 @@ function setTrack(input) {
   el('fit-track').hidden = !track;
   el('clear').hidden = !track;
   el('gpx-output').hidden = !track;
+  el('export-gpx').hidden = !track?.source;
+  el('track-credit').hidden = !track?.source;
+  el('track-legend').textContent = track?.source ? 'Inspected map segment' : 'Local GPX';
   if (!track) {
     el('map-hint').textContent = 'The optional street background requests tiles from OpenStreetMap. It is disabled when a GPX is open.';
     el('gpx-status').textContent = 'Load a Garmin or other GPX activity to see distance, recorded ascent, elevation and elapsed time.';
@@ -283,6 +310,12 @@ function setTrack(input) {
     return;
   }
   el('map-hint').textContent = 'Private track view. No street tiles are requested around this track.';
+  if (track.source) {
+    const source = track.source;
+    el('track-credit').replaceChildren(source.publisher + ' · ', anchor(source.title, source.link),
+      ' · record ' + track.recordId + (track.suggested ? ' · suggested route' : '') + ' · snapshot ' + day(source.retrieved) + ' · ',
+      anchor(source.license, source.license_link), '. Municipal geometry supplies no activity times or elevation.');
+  }
   const stats = analyze(track.segments);
   const lines = track.segments.filter(segment => segment.length > 1).map(segment => segment.map(point => [point.lat, point.lon]));
   gpxLayer = L.polyline(lines, { color: colors.track, weight: 5, opacity: .95, pane: 'gpx', interactive: false }).addTo(map);
@@ -292,7 +325,7 @@ function setTrack(input) {
   const facts = el('gpx-facts');
   facts.replaceChildren();
   for (const [key, value] of [
-    ['Track distance', length(stats.metres)],
+    [track.source ? 'Mapped distance' : 'Track distance', length(stats.metres)],
     ['Recorded ascent', stats.gain === null ? 'Unavailable' : number(stats.gain) + ' m'],
     ['Elevation range', stats.minimum === null ? 'Unavailable' : number(stats.minimum) + '–' + number(stats.maximum) + ' m'],
     ['Elapsed time', stats.duration === null ? 'Unavailable' : elapsed(stats.duration)],
@@ -315,18 +348,24 @@ async function openTrack(contents) {
   }
 }
 
+function download(blob, filename) {
+  const href = URL.createObjectURL(blob);
+  const link = anchor('', href);
+  link.download = filename;
+  link.click();
+  setTimeout(() => URL.revokeObjectURL(href), 5000);
+}
+
 function exportTrack() {
   if (!track) return;
   const segments = track.segments.filter(segment => segment.length > 1);
   const data = { type: 'FeatureCollection', features: segments.map((segment, index) => ({
-    type: 'Feature', properties: { name: track.name, segment: index + 1 },
+    type: 'Feature', properties: { name: track.name, segment: index + 1,
+      ...(track.source ? {publisher:track.source.publisher, source:track.source.link, source_record:track.recordId,
+        license:track.source.license_link, retrieved:track.source.retrieved, facility:track.facility, suggested:track.suggested} : {}) },
     geometry: { type: 'LineString', coordinates: segment.map(point => [point.lon, point.lat]) },
   })) };
-  const href = URL.createObjectURL(new Blob([JSON.stringify(data, null, 2)], { type: 'application/geo+json' }));
-  const link = anchor('', href);
-  link.download = 'trailglass-track.geojson';
-  link.click();
-  setTimeout(() => URL.revokeObjectURL(href), 5000);
+  download(new Blob([JSON.stringify(data, null, 2)], {type:'application/geo+json'}), 'trailglass-track.geojson');
 }
 
 let queryTimer;
@@ -354,10 +393,15 @@ el('gpx-file').addEventListener('change', event => {
   }
   openTrack(file.text());
 });
-el('sample').addEventListener('click', () => openTrack(fetch('./example.gpx').then(response => {
-  if (!response.ok) throw new Error('The example track could not load.');
-  return response.text();
-})));
+el('inspect-mapped').addEventListener('click', () => {
+  const feature = filtered.find(item => item.properties.id === picked) ?? filtered[0];
+  inspectMapped(feature);
+});
+el('export-gpx').addEventListener('click', () => {
+  if (!track?.source) return;
+  const name = track.name.replace(/[^a-z0-9]+/gi, '-').replace(/^-|-$/g, '') || 'segment';
+  download(new Blob([municipalGpx(track)], {type:'application/gpx+xml'}), name + '-' + track.recordId + '.gpx');
+});
 el('export-track').addEventListener('click', exportTrack);
 el('fit-track').addEventListener('click', fitTrack);
 el('clear').addEventListener('click', () => {
