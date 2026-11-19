@@ -4,10 +4,11 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <meta name="description" content="Find municipal cycling routes and trails in Vancouver, the Township of Langley, and Halifax, or inspect a Garmin GPX track privately.">
-<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self'; style-src 'self' 'unsafe-inline'; connect-src 'self'; img-src 'self' data: https://tile.openstreetmap.org; object-src 'none'; base-uri 'none'; form-action 'none'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self'; style-src 'self' 'unsafe-inline'; connect-src 'self'; img-src 'self' data: https://tile.openstreetmap.org; object-src 'none'; base-uri 'none'; form-action 'none'; frame-src 'self'">
 <title>Trailglass | CoolCode.ca</title>
 <link rel="stylesheet" href="./vendor/leaflet.css">
 <link rel="stylesheet" href="./style.css">
+<script defer src="/assets/tool-metrics.js" referrerpolicy="no-referrer"></script>
 </head>
 <body>
 <header class="mast"><div class="wrap mast-inner"><a class="brand" href="https://coolcode.ca/"><b aria-hidden="true">&gt;_</b> CoolCode<span>.ca</span></a><a href="https://github.com/jsdyer/trailglass">Source ↗</a></div></header>
@@ -73,7 +74,7 @@
 </details>
 </div>
 </main>
-<footer class="wrap foot"><p>Trailglass · CoolCode.ca</p><p>Vancouver · Township of Langley · Halifax</p></footer>
+<footer class="wrap foot"><p>Trailglass · CoolCode.ca</p><p>Vancouver · Township of Langley · Halifax</p> <a href="https://coolcode.ca/report/?tool=trailglass" referrerpolicy="no-referrer">Report an issue</a></footer>
 <noscript>Enable JavaScript to use the trail map and GPX inspector.</noscript>
 <script src="./vendor/leaflet.js"></script>
 <script type="module" src="./app.mjs"></script>
