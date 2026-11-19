@@ -15,9 +15,17 @@ with sync_playwright() as playwright:
         page = browser.new_page(viewport={"width": width, "height": 900}, accept_downloads=True)
         errors = []
         page.on("pageerror", lambda error: errors.append(str(error)))
+        page.route("https://tile.openstreetmap.org/**", lambda route: route.abort())
         page.goto(sys.argv[1])
         page.locator("#region").select_option(region)
         page.locator("#results .segment").first.wait_for()
+        page.locator("#tile-notice").wait_for()
+        page.unroute("https://tile.openstreetmap.org/**")
+        tile = '<svg xmlns="http://www.w3.org/2000/svg" width="256" height="256"><rect width="256" height="256" fill="#cadfc9"/></svg>'
+        page.route("https://tile.openstreetmap.org/**", lambda route: route.fulfill(content_type="image/svg+xml", body=tile))
+        page.locator("#retry-tiles").click()
+        page.wait_for_selector("img.leaflet-tile-loaded")
+        assert page.locator("#tile-notice").is_hidden()
         page.locator("#results .segment").nth(1).click()
         page.get_by_role("button", name="Inspect and export segment").click()
         credit = page.locator("#track-credit").inner_text()
@@ -36,7 +44,7 @@ with sync_playwright() as playwright:
         actual = [[[float(p.attrib["lon"]), float(p.attrib["lat"])] for p in seg] for seg in segments]
         assert actual == lines
         assert xml.findtext("g:trk/g:name", namespaces=gpx_ns) == original["properties"]["name"]
-        assert page.locator("#tiles").is_disabled()
+        assert page.locator("#tiles").is_checked()
         assert "Unavailable" in page.locator("#gpx-facts").inner_text()
         with page.expect_download() as download:
             page.locator("#export-track").click()
@@ -48,6 +56,9 @@ with sync_playwright() as playwright:
         page.locator("#gpx-output").wait_for()
         assert page.locator("#track-credit").is_hidden() and page.locator("#export-gpx").is_hidden()
         assert original["properties"]["name"] in page.locator("#gpx-status").inner_text()
+        assert page.locator("#tiles").is_disabled() and not page.locator("#map .leaflet-tile").count()
+        page.locator("#clear").click()
+        assert page.locator("#tiles").is_checked()
         assert page.evaluate("document.documentElement.scrollWidth <= innerWidth")
         assert not errors, errors
         page.close()

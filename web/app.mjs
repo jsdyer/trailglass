@@ -1,3 +1,4 @@
+import {streetMap} from './streets.mjs';
 import { analyze, geometryDistance, readGpx, mappedTrack, municipalGpx } from './track.mjs';
 
 const el = id => document.getElementById(id);
@@ -23,10 +24,8 @@ let track;
 const map = L.map(el('map'), { preferCanvas: true, scrollWheelZoom: false, minZoom: 2, maxZoom: 19 });
 map.setView(regions.vancouver.center, regions.vancouver.zoom);
 L.control.scale({ imperial: false }).addTo(map);
-const street = L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
-  attribution: '© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap contributors</a>',
-  maxZoom: 19,
-});
+const street = streetMap(map);
+let streetsPreferred = true;
 const routePane = map.createPane('gpx');
 routePane.style.zIndex = 450;
 
@@ -233,7 +232,7 @@ async function loadRegion() {
 }
 
 function toggleTiles() {
-  if (el('tiles').checked && !track) street.addTo(map);
+  if (el('tiles').checked && (!track || track.source)) street.addTo(map);
   else if (map.hasLayer(street)) street.remove();
 }
 
@@ -292,8 +291,15 @@ function elevationChart(stats) {
 function setTrack(input) {
   track = input;
   gpxLayer?.remove();
-  el('tiles').checked = false;
-  el('tiles').disabled = !!track;
+  // Leave any private extent before restoring requests to an external tile provider.
+  street.remove();
+  if (!track || track.source) {
+    if (track) map.setView(regions[el('region').value].center, regions[el('region').value].zoom, {animate:false});
+    else fitResults();
+  }
+  const privateTrack = Boolean(track && !track.source);
+  el('tiles').checked = streetsPreferred && !privateTrack;
+  el('tiles').disabled = privateTrack;
   toggleTiles();
   el('track-key').hidden = !track;
   el('fit-track').hidden = !track;
@@ -303,13 +309,12 @@ function setTrack(input) {
   el('track-credit').hidden = !track?.source;
   el('track-legend').textContent = track?.source ? 'Inspected map segment' : 'Local GPX';
   if (!track) {
-    el('map-hint').textContent = 'The optional street background requests tiles from OpenStreetMap. It is disabled when a GPX is open.';
+    el('map-hint').textContent = 'Street tiles from OpenStreetMap show roads and landmarks. They switch off before a local GPX is displayed.';
     el('gpx-status').textContent = 'Load a Garmin or other GPX activity to see distance, recorded ascent, elevation and elapsed time.';
     gpxLayer = null;
-    fitResults();
     return;
   }
-  el('map-hint').textContent = 'Private track view. No street tiles are requested around this track.';
+  el('map-hint').textContent = privateTrack ? 'Local GPX view. Street tiles are off while your file is open.' : 'This segment comes from the public municipal route map.';
   if (track.source) {
     const source = track.source;
     el('track-credit').replaceChildren(source.publisher + ' · ', anchor(source.title, source.link),
@@ -376,7 +381,8 @@ el('query').addEventListener('input', () => {
 for (const id of ['type', 'surface', 'suggested-toggle']) el(id).addEventListener('change', () => applyFilters());
 el('region').addEventListener('change', loadRegion);
 el('fit').addEventListener('click', fitResults);
-el('tiles').addEventListener('change', toggleTiles);
+el('tiles').addEventListener('change', () => { streetsPreferred = el('tiles').checked; toggleTiles(); });
+toggleTiles();
 el('more').addEventListener('click', () => {
   visibleLimit += resultLimit;
   renderList();

@@ -1,7 +1,7 @@
 {
   "id": "trailglass",
   "title": "Trailglass",
-  "description": "Explore municipal trails, download mapped segments as GPX and inspect your own recorded rides.",
+  "description": "Follow municipal trails on a street map, download mapped segments as GPX and inspect your own recorded rides.",
   "category": "places",
   "tags": [
     "langley",
@@ -21,7 +21,7 @@
   "access": "browser",
   "data_info": {
     "mode": "mixed",
-    "detail": "Vancouver, Langley and Halifax publish the mapped segments. Activity times and elevations come from GPX files you open.",
+    "detail": "Municipal trail segments appear over OpenStreetMap streets. Local GPX files supply their own coordinates, times and elevations.",
     "probes": [
       {
         "url": "https://coolcode.ca/trailglass/data/status.json",
