@@ -1,7 +1,7 @@
 {
   "id": "trailglass",
   "title": "Trailglass",
-  "description": "Follow municipal trails on a street map, download mapped segments as GPX and inspect your own recorded rides.",
+  "description": "Inspect mapped trails or GPX rides, find steep sections and compare recorded elevations with optional terrain estimates.",
   "category": "places",
   "tags": [
     "langley",
@@ -21,7 +21,7 @@
   "access": "browser",
   "data_info": {
     "mode": "mixed",
-    "detail": "Municipal trail segments appear over OpenStreetMap streets. Local GPX files supply their own coordinates, times and elevations.",
+    "detail": "Municipal geometry and local GPX tracks, with optional 90 m Copernicus terrain estimates through Open-Meteo. Coordinates are sent only on an explicit terrain request.",
     "probes": [
       {
         "url": "https://coolcode.ca/trailglass/data/status.json",

@@ -1,5 +1,6 @@
 import {streetMap} from './streets.mjs';
 import { analyze, geometryDistance, readGpx, mappedTrack, municipalGpx } from './track.mjs';
+import {sampleTerrain,terrainProfile,gradeSections} from './terrain.mjs';
 
 const el = id => document.getElementById(id);
 const L = window.L;
@@ -20,6 +21,7 @@ let picked = null;
 let routeLayer;
 let gpxLayer;
 let track;
+let terrainRequest=0;
 
 const map = L.map(el('map'), { preferCanvas: true, scrollWheelZoom: false, minZoom: 2, maxZoom: 19 });
 map.setView(regions.vancouver.center, regions.vancouver.zoom);
@@ -257,15 +259,14 @@ function vector(tag, attributes, text) {
   return item;
 }
 
-function elevationChart(stats) {
-  const parent = el('elevation');
+function elevationChart(stats, parent = el('elevation'), label='Recorded') {
   parent.replaceChildren();
   if (!stats.elevationPoints) {
     parent.append(node('p', 'No elevation values were recorded in this file.', 'fine'));
     return;
   }
   const chart = vector('svg', { viewBox: '0 0 810 185', class: 'profile', role: 'img',
-    'aria-label': 'Recorded elevation profile from ' + number(stats.minimum) + ' to ' + number(stats.maximum) + ' metres' });
+    'aria-label': label+' elevation profile from ' + number(stats.minimum) + ' to ' + number(stats.maximum) + ' metres' });
   const min = stats.minimum;
   const max = Math.max(stats.maximum, min + 1);
   const x = m => 68 + 716 * m / Math.max(1, stats.metres);
@@ -289,6 +290,10 @@ function elevationChart(stats) {
 }
 
 function setTrack(input) {
+  terrainRequest++;
+  el('terrain-result').replaceChildren();
+  el('terrain-status').textContent='Optional: send up to 100 sampled coordinates to Open-Meteo for a separate 90 m terrain estimate.';
+  el('load-terrain').disabled=false;
   track = input;
   gpxLayer?.remove();
   // Leave any private extent before restoring requests to an external tile provider.
@@ -340,7 +345,40 @@ function setTrack(input) {
     facts.append(pair);
   }
   elevationChart(stats);
+  renderGrades(stats.profile, el('recorded-grades'));
 }
+
+function renderGrades(profile,parent) {
+  const steep=gradeSections(profile);
+  parent.replaceChildren(node('h3','Steep sections · 100 m or longer'));
+  parent.append(node('p','Non-overlapping windows with average grade of at least ±8%. Gaps are not bridged. Elevation noise and coarse samples can affect the result.','fine'));
+  if(!steep.length){parent.append(node('p','No qualifying steep window in the available elevations. Missing elevations are not treated as flat.'));return;}
+  const list=node('ul');for(const s of steep)list.append(node('li',length(s.start)+'–'+length(s.end)+' · '+(s.grade>0?'+':'')+number(s.grade,1)+'% · segment '+s.segment));parent.append(list);
+}
+
+el('load-terrain').addEventListener('click',async()=>{
+  if(!track)return;
+  const ticket=++terrainRequest;
+  el('load-terrain').disabled=true;
+  el('terrain-result').replaceChildren();
+  el('terrain-status').textContent='Requesting sampled terrain elevations…';
+  try {
+    const samples=sampleTerrain(track.segments), points=samples.flat();
+    const url=new URL('https://api.open-meteo.com/v1/elevation');
+    url.searchParams.set('latitude',points.map(p=>p.lat.toFixed(6)).join(','));
+    url.searchParams.set('longitude',points.map(p=>p.lon.toFixed(6)).join(','));
+    const response=await fetch(url,{credentials:'omit',referrerPolicy:'no-referrer',signal:AbortSignal.timeout(20000)});
+    if(!response.ok)throw new Error('Elevation service returned HTTP '+response.status);
+    const body=await response.json();
+    const stats=terrainProfile(samples,body.elevation??[]);
+    if(ticket!==terrainRequest)return;
+    const result=el('terrain-result'),chart=node('div'),grades=node('div');
+    result.append(node('h3','Modelled terrain profile'),node('p',points.length+' samples · sampled ascent '+number(stats.gain)+' m · range '+number(stats.minimum)+'–'+number(stats.maximum)+' m. This coarse surface estimate is separate from recorded GPX elevations.'),chart,grades);
+    elevationChart(stats,chart,'Modelled terrain');renderGrades(stats.profile,grades);
+    el('terrain-status').textContent='Retrieved '+new Date().toISOString()+'. Copernicus DEM GLO-90 via Open-Meteo. Resolution about 90 m; bridges, tunnels and small climbs may not be represented.';
+  }catch(error){if(ticket===terrainRequest)el('terrain-status').textContent=error.message+' Your recorded track is unchanged.';}
+  finally{if(ticket===terrainRequest)el('load-terrain').disabled=false;}
+});
 
 async function openTrack(contents) {
   const request = ++fileLoad;

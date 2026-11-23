@@ -5,7 +5,7 @@ A static map and private GPX inspector for municipal routes in Vancouver, the To
 ## Inspect and download mapped segments
 
 <!-- coolcode:guide -->
-Follow municipal routes against the street map. Select a map segment to download its GPX with the municipality, source record and licence. The inspector also reads local GPX activities with recorded times and elevations.
+Select a municipal segment or open a local GPX to inspect distance, recorded elevations and steep sections. You can explicitly send up to 100 sampled coordinates for a separate Open-Meteo terrain profile. The roughly 90 m terrain model does not replace recorded elevations and can miss bridges, tunnels and small climbs.
 <!-- /coolcode:guide -->
 
 For example, search Vancouver for Central Valley and open a segment. Choose **Inspect and export segment** in its map popup to see its mapped length and point count. **Download mapped segment GPX** saves its lines to a GPX 1.1 track. Disconnected parts remain separate. The GPX also records the dataset, municipal record ID, snapshot date, licence and whether Halifax marks a line as suggested. Its coordinates describe one published feature. Time and elevation only appear for imported files that supply those measurements. Downloading the GeoJSON also preserves municipal provenance.
@@ -30,3 +30,8 @@ Trail line geometry shows source-mapped segments with approximate positions. Tow
 ## GPX privacy
 
 Your browser reads GPX route and track points. Files, coordinates and calculated statistics stay in the tab. OpenStreetMap receives the public map viewport. Street tiles stay visible for public municipal segments. The app turns them off before fitting an imported GPX and restores your previous choice after returning to a public extent. CoolCode counts page opens by tool ID. Counts exclude GPX details and map locations. Distances use haversine segment lengths. Elevation gain sums positive changes in recorded elevation and is sensitive to sample noise. Elapsed time sums intervals within timed segments, excluding gaps between segments. GPX GeoJSON export includes the local track coordinates.
+
+
+## Added browser workflow
+
+Select a municipal segment or open a local GPX to inspect distance, recorded elevations and steep sections. You can explicitly send up to 100 sampled coordinates for a separate Open-Meteo terrain profile. The roughly 90 m terrain model does not replace recorded elevations and can miss bridges, tunnels and small climbs.

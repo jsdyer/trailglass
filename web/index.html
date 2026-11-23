@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <meta name="description" content="Find municipal cycling routes and trails in Vancouver, the Township of Langley, and Halifax, or inspect a Garmin GPX track privately.">
-<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self'; style-src 'self' 'unsafe-inline'; connect-src 'self'; img-src 'self' data: https://tile.openstreetmap.org; object-src 'none'; base-uri 'none'; form-action 'none'; frame-src 'self'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self'; style-src 'self' 'unsafe-inline'; connect-src 'self' https://api.open-meteo.com; img-src 'self' data: https://tile.openstreetmap.org; object-src 'none'; base-uri 'none'; form-action 'none'; frame-src 'self'">
 <title>Trailglass | CoolCode.ca</title>
 <link rel="stylesheet" href="./vendor/leaflet.css">
 <link rel="stylesheet" href="./style.css">
@@ -59,7 +59,8 @@
 <p id="gpx-status" class="fine" role="status" aria-live="polite">Load a Garmin or other GPX activity to see distance, recorded ascent, elevation and elapsed time.</p>
 <div id="gpx-output" hidden>
 <dl id="gpx-facts" class="gpx-facts"></dl>
-<div id="elevation"></div>
+<div id="elevation"></div><div id="recorded-grades"></div>
+<section class="terrain"><h3>Estimate terrain elevation</h3><p>Get a separate modelled profile for this route. Clicking sends up to 100 sampled coordinates to Open-Meteo; the GPX file itself stays on your device.</p><button type="button" class="quiet" id="load-terrain">Send sampled coordinates &amp; estimate terrain</button><p id="terrain-status" class="fine" role="status"></p><div id="terrain-result"></div><p class="fine"><a href="https://open-meteo.com/en/docs/elevation-api">Open-Meteo elevation API</a> · <a href="https://spacedata.copernicus.eu/collections/copernicus-digital-elevation-model">Copernicus DEM GLO-90</a> · <a href="https://creativecommons.org/licenses/by/4.0/">CC BY 4.0</a></p></section>
 <p id="track-credit" class="fine" hidden></p>
 <button class="quiet" type="button" id="export-gpx" hidden>Download mapped segment GPX</button>
 <button class="quiet" type="button" id="export-track">Export track GeoJSON</button>
