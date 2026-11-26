@@ -6,6 +6,7 @@ A static map and private GPX inspector for municipal routes in Vancouver, the To
 
 <!-- coolcode:guide -->
 Select a municipal segment or open a local GPX to inspect distance, recorded elevations and steep sections. You can explicitly send up to 100 sampled coordinates for a separate Open-Meteo terrain profile. The roughly 90 m terrain model does not replace recorded elevations and can miss bridges, tunnels and small climbs.
+For BC riding regions, **Before you ride** loads recent ECCC station precipitation, dated regional forecasts and DriveBC road events. Trailforks status and report widgets load separately when requested.
 <!-- /coolcode:guide -->
 
 For example, search Vancouver for Central Valley and open a segment. Choose **Inspect and export segment** in its map popup to see its mapped length and point count. **Download mapped segment GPX** saves its lines to a GPX 1.1 track. Disconnected parts remain separate. The GPX also records the dataset, municipal record ID, snapshot date, licence and whether Halifax marks a line as suggested. Its coordinates describe one published feature. Time and elevation only appear for imported files that supply those measurements. Downloading the GeoJSON also preserves municipal provenance.
@@ -43,3 +44,13 @@ Public GitHub repositories can have scheduled workflows disabled after 60 days o
 
 This is an interim mitigation, not a scheduling guarantee: GitHub does not document active-workflow renewal as a permanent exemption, and scheduled runs can be delayed or dropped. A scheduler on our own Linux server is the planned independent trigger. The guard does not collect data, create dummy commits, or change source/check timestamps; successful collection and published data freshness still need monitoring.
 <!-- /schedule-reliability -->
+
+## BC conditions and official Trailforks embeds
+
+The five presets are North Shore (Trailforks 3009), Squamish (3012), Whistler (3010), Southern Sunshine Coast (3013) and Abbotsford (3259). IDs were checked on the corresponding official region pages on 2026-11-26. `web/ride-regions.mjs` holds the public region IDs, ECCC forecast cities, climate identifiers and road bounding boxes. Abbotsford does not claim to cover the entire Fraser Valley.
+
+The browser requests ECCC city forecasts, ECCC climate-daily station observations and DriveBC Open511 events only after **Load weather & roads**. It displays source observation dates separately from retrieval time. Daily precipitation includes water-equivalent snow; rain is displayed separately when provided. Null is never converted to zero. A three-day total requires three consecutive unflagged daily totals. Old or incomplete measurements remain explicit. Lowland stations cannot establish conditions on a mountain trail.
+
+Trailforks is embedded through its official [region status](https://www.trailforks.com/widgets/config/region_status/) and [trail reports](https://www.trailforks.com/widgets/config/trailreports/) widgets. These load only on request; branding and source links stay visible. No Trailforks API, scraping, copied catalogue or API key is used. Blocked widgets retain an ordinary region link. Weather and road requests are independent of GPX inspection and do not send a GPX location.
+
+Source schemas: [ECCC OGC API](https://eccc-msc.github.io/open-data/msc-geomet/ogc_api_en/) and [DriveBC Open511](https://api.open511.gov.bc.ca/help). No Worker change, secret or additional refresh schedule is needed. Run `node --test tests/*.test.mjs` for the precipitation completeness, widget boundaries and existing track calculations.

@@ -1,7 +1,7 @@
 {
   "id": "trailglass",
   "title": "Trailglass",
-  "description": "Inspect mapped trails or GPX rides, find steep sections and compare recorded elevations with optional terrain estimates.",
+  "description": "Explore municipal trails and private GPX rides, with BC rainfall, road events and official Trailforks condition widgets.",
   "category": "places",
   "tags": [
     "langley",
@@ -12,7 +12,11 @@
     "bike",
     "cycling",
     "hikes",
-    "gpx"
+    "gpx",
+    "rainfall",
+    "Trailforks",
+    "DriveBC",
+    "trail conditions"
   ],
   "icon": "bike",
   "url": "/trailglass/",
@@ -21,7 +25,7 @@
   "access": "browser",
   "data_info": {
     "mode": "mixed",
-    "detail": "Municipal geometry and local GPX tracks, with optional 90 m Copernicus terrain estimates through Open-Meteo. Coordinates are sent only on an explicit terrain request.",
+    "detail": "Municipal geometry and local GPX tracks; optional terrain estimates, ECCC precipitation/forecasts, DriveBC events and official Trailforks widgets load on request.",
     "probes": [
       {
         "url": "https://coolcode.ca/trailglass/data/status.json",

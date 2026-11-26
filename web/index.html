@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <meta name="description" content="Find municipal cycling routes and trails in Vancouver, the Township of Langley, and Halifax, or inspect a Garmin GPX track privately.">
-<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self'; style-src 'self' 'unsafe-inline'; connect-src 'self' https://api.open-meteo.com; img-src 'self' data: https://tile.openstreetmap.org; object-src 'none'; base-uri 'none'; form-action 'none'; frame-src 'self'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self'; style-src 'self' 'unsafe-inline'; connect-src 'self' https://api.open-meteo.com https://api.weather.gc.ca https://api.open511.gov.bc.ca; img-src 'self' data: https://tile.openstreetmap.org; object-src 'none'; base-uri 'none'; form-action 'none'; frame-src 'self' https://www.trailforks.com">
 <title>Trailglass | CoolCode.ca</title>
 <link rel="stylesheet" href="./vendor/leaflet.css">
 <link rel="stylesheet" href="./style.css">
@@ -48,6 +48,14 @@
 <button id="more" class="quiet" type="button" hidden>Show more segments</button>
 </section>
 </div>
+<section class="gpx-panel" id="before-you-ride" aria-labelledby="ride-title">
+<p class="eyebrow">BC riding conditions</p><h2 id="ride-title">Before you ride</h2>
+<p>Compare recent station precipitation, Environment Canada forecasts, road access and Trailforks reports. Rainfall does not determine whether a trail is open. Follow local trail-association notices and on-site signs.</p>
+<div class="gpx-actions"><label for="ride-region">Riding region</label><select id="ride-region"></select><button type="button" id="ride-load">Load weather &amp; roads</button></div>
+<p id="ride-status" class="fine" role="status"></p><div class="ride-grid"><article id="ride-rain"></article><article id="ride-forecast"></article><article id="ride-roads"></article></div>
+<p class="fine"><a href="https://weather.gc.ca/">Environment Canada</a> · <a href="https://climate.weather.gc.ca/">Historical climate observations</a> (<a href="https://open.canada.ca/en/open-government-licence-canada">Open Government Licence – Canada</a>) · <a href="https://www.drivebc.ca/">DriveBC</a> (<a href="https://www2.gov.bc.ca/gov/content/data/open-data/open-government-licence-bc">OGL-BC</a>)</p>
+<h3>Trailforks status &amp; recent reports</h3><p>Official Trailforks widgets keep their attribution and link back to the source. Reports may be old, incomplete or community-submitted. Their timestamps matter; a blank widget is not an open-trail confirmation.</p><button type="button" id="ride-widget-load">Load Trailforks widgets</button> <a id="ride-trailforks" href="https://www.trailforks.com/">Open this region on Trailforks</a><p class="fine">Loading these embeds connects your browser to Trailforks and its service providers. If an embed is blocked, use the region link.</p><div id="ride-widgets" class="ride-widgets"></div>
+</section>
 <section id="gpx" class="gpx-panel" aria-labelledby="gpx-title">
 <div class="section-head"><div><p class="eyebrow">Files stay on this device</p><h2 id="gpx-title" tabindex="-1">Track inspector</h2></div></div>
 <div class="gpx-actions">
@@ -79,4 +87,5 @@
 <noscript>Enable JavaScript to use the trail map and GPX inspector.</noscript>
 <script src="./vendor/leaflet.js"></script>
 <script type="module" src="./app.mjs"></script>
+<script type="module" src="./ride.mjs"></script>
 </body></html>

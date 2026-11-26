@@ -17,6 +17,25 @@ with sync_playwright() as playwright:
         page.on("pageerror", lambda error: errors.append(str(error)))
         page.route("https://tile.openstreetmap.org/**", lambda route: route.abort())
         page.goto(sys.argv[1])
+        assert page.locator('#ride-widgets iframe').count()==0
+        if region=='vancouver':
+            page.route('https://api.weather.gc.ca/collections/climate-daily/**',lambda route:route.fulfill(json={'features':[{'properties':{'LOCAL_DATE':'2026-11-24 00:00:00','CLIMATE_IDENTIFIER':'1108824','TOTAL_PRECIPITATION':18.3,'TOTAL_RAIN':None}}]}))
+            page.route('https://api.weather.gc.ca/collections/citypageweather-realtime/**',lambda route:route.fulfill(json={'properties':{'name':{'en':'West Vancouver'},'forecastGroup':{'timestamp':{'en':'2026-11-26T04:00:00Z'},'forecasts':[{'period':{'textForecastName':{'en':'Tonight'}},'textSummary':{'en':'Periods of rain.'}}]}}}))
+            page.route('https://api.open511.gov.bc.ca/**',lambda route:route.fulfill(json={'events':[{'status':'ACTIVE','headline':'Highway closure fixture','description':'Test road report','updated':'2026-11-26T03:00:00Z','severity':'MAJOR'}]}))
+            page.locator('#ride-load').click()
+            page.wait_for_function("document.querySelector('#ride-rain').textContent.includes('18.3 mm')")
+            assert 'Rain-only total not supplied' in page.locator('#ride-rain').inner_text()
+            assert 'Highway closure fixture' in page.locator('#ride-roads').inner_text()
+            page.route('https://www.trailforks.com/**',lambda route:route.fulfill(content_type='text/html',body='<p>Official widget fixture</p>'))
+            page.locator('#ride-widget-load').click()
+            assert page.locator('#ride-widgets iframe').count()==2
+            assert 'rid=3009' in page.locator('#ride-widgets iframe').first.get_attribute('src')
+            page.select_option('#ride-region','whistler')
+            assert page.locator('#ride-widgets iframe').count()==0
+            assert page.locator('#ride-rain').inner_text()==''
+            page.route('https://api.open511.gov.bc.ca/**',lambda route:route.fulfill(status=503,body='Unavailable'))
+            page.locator('#ride-load').click()
+            page.wait_for_function("document.querySelector('#ride-roads').textContent.includes('source is unavailable')")
         page.locator("#region").select_option(region)
         page.locator("#results .segment").first.wait_for()
         page.locator("#tile-notice").wait_for()
